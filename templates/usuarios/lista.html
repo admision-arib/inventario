@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios del Sistema{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto mt-4 mb-8 text-slate-700 animate-fade-in">
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
+        <div>
+            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Usuarios del Sistema</h1>
+            <p class="text-xs text-slate-500 mt-1">Gestión integral de accesos, roles y privilegios para el personal del IESTP ARIB</p>
+        </div>
+
+        <a href="{% url 'crear_usuario' %}"
+           class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white px-4 py-2.5 rounded-xl shadow-sm transition-all focus:outline-none focus:ring-4 focus:ring-indigo-500/20 text-xs font-bold self-start sm:self-auto uppercase tracking-wider">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span>Nuevo Usuario</span>
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-3.5 rounded-xl text-xs font-medium border flex items-center gap-2.5 shadow-sm animate-slide-in
+                {% if 'success' in message.tags %}
+                    bg-emerald-50 border-emerald-200 text-emerald-800
+                {% elif 'warning' in message.tags %}
+                    bg-amber-50 border-amber-200 text-amber-800
+                {% elif 'error' in message.tags %}
+                    bg-rose-50 border-rose-200 text-rose-800
+                {% else %}
+                    bg-indigo-50 border-indigo-200 text-indigo-800
+                {% endif %}">
+
+                {% if 'success' in message.tags %}
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                {% elif 'error' in message.tags %}
+                    <span class="w-2 h-2 rounded-full bg-rose-500 inline-block animate-pulse"></span>
+                {% else %}
+                    <span class="w-2 h-2 rounded-full bg-indigo-500 inline-block animate-pulse"></span>
+                {% endif %}
+
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="bg-white shadow-sm border border-slate-200 rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-xs">
+                <thead class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    <tr>
+                        <th scope="col" class="px-6 py-3.5 text-left">Datos del Personal</th>
+                        <th scope="col" class="px-6 py-3.5 text-left">DNI</th>
+                        <th scope="col" class="px-6 py-3.5 text-left">Correo Electrónico</th>
+                        <th scope="col" class="px-6 py-3.5 text-left">Roles</th>
+                        <th scope="col" class="px-6 py-3.5 text-left">Estado</th>
+                        <th scope="col" class="px-6 py-3.5 text-right">Acciones de Control</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-slate-100">
+                    {% for u in usuarios %}
+                    <tr class="{% if not u.is_active %}bg-slate-50/60 text-slate-400{% endif %} hover:bg-slate-50/80 transition-colors">
+
+                        <td class="px-6 py-4 font-semibold {% if u.is_active %}text-slate-900{% else %}text-slate-400{% endif %}">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs uppercase shadow-inner flex-shrink-0
+                                    {% if u.is_active %}
+                                        bg-indigo-50 text-indigo-600 border border-indigo-100
+                                    {% else %}
+                                        bg-slate-200 text-slate-500 border border-slate-300
+                                    {% endif %}">
+                                    {{ u.first_name|slice:":1" }}{{ u.last_name|slice:":1" }}
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-bold">{{ u.nombre_completo }}</span>
+                                    <span class="text-[10px] text-slate-400 font-normal">ID: #{{ u.pk }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4 font-mono font-medium tracking-wider text-slate-600">{{ u.dni }}</td>
+
+                        <td class="px-6 py-4 text-slate-600 font-medium">{{ u.email }}</td>
+
+                        <!-- ==================== ROLES MÚLTIPLES ==================== -->
+                        <td class="px-6 py-4">
+                            <div class="flex flex-wrap gap-1">
+                                {% for rol in u.roles.all %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border
+                                        {% if rol.codigo == 'ADMIN' or rol.codigo == 'CONTROL_PATRIMONIAL' %}
+                                            bg-indigo-50 border-indigo-100 text-indigo-700
+                                        {% else %}
+                                            bg-slate-100 border-slate-200 text-slate-700
+                                        {% endif %}">
+                                        {{ rol.get_codigo_display }}
+                                    </span>
+                                {% empty %}
+                                    <span class="text-slate-400 italic text-[10px]">Sin roles</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4">
+                            {% if u.is_active %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 border border-emerald-200 text-emerald-800">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    Activo
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 border border-rose-200 text-rose-800">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                    Inactivo
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex justify-end items-center gap-2">
+                                <a href="{% url 'editar_usuario' u.pk %}"
+                                   class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 active:bg-slate-300 transition focus:outline-none focus:ring-4 focus:ring-slate-200"
+                                   aria-label="Editar {{ u.nombre_completo }}">
+                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                    <span>Editar</span>
+                                </a>
+
+                                <a href="{% url 'toggle_usuario' u.pk %}"
+                                   onclick="return confirm('¿Confirma cambiar el estado de acceso del usuario {{ u.nombre_completo|escapejs }}?')"
+                                   class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-xl transition border focus:outline-none focus:ring-4
+                                          {% if u.is_active %}
+                                              bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100 focus:ring-rose-200
+                                          {% else %}
+                                              bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 focus:ring-emerald-200
+                                          {% endif %}"
+                                   aria-label="{% if u.is_active %}Desactivar{% else %}Activar{% endif %} {{ u.nombre_completo }}">
+                                    {% if u.is_active %}
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                                        </svg>
+                                        <span>Baja</span>
+                                    {% else %}
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <span>Alta</span>
+                                    {% endif %}
+                                </a>
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-12 text-slate-400 font-medium">
+                            <div class="flex flex-col items-center justify-center gap-2">
+                                <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                </svg>
+                                <span>No existen registros de personal cargados en la base de datos.</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

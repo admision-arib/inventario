@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Comisiones de Inventario{% endblock %}
+
+{% block content %}
+<div class="max-w-full mx-4 md:mx-8 mt-6 mb-12 animate-fade-in">
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4 border-b border-slate-100 pb-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Comisiones de Inventario</h1>
+            <p class="text-sm text-slate-500 mt-0.5">Gestión, resoluciones y subida de datos para el inventario físico institucional.</p>
+        </div>
+
+        <a href="{% url 'crear_comision' %}"
+           class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white px-4 py-2 rounded-xl shadow-md hover:shadow-indigo-500/10 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-sm font-semibold self-start sm:self-auto">
+            <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span>Nueva Comisión</span>
+        </a>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden w-full">
+
+        <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-4 bg-indigo-600 rounded-full"></span>
+                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Grupos de Trabajo Activos</span>
+            </div>
+        </div>
+
+        <div class="w-full">
+            <table class="w-full text-left border-collapse table-auto text-sm text-slate-700">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                        <th scope="col" class="px-6 py-3.5 w-[30%]">Nombre del Grupo</th>
+                        <th scope="col" class="px-6 py-3.5 w-[25%]">Resolución de Designación</th>
+                        <th scope="col" class="px-6 py-3.5 w-[12%]">F. Inicio</th>
+                        <th scope="col" class="px-6 py-3.5 w-[12%]">F. Fin</th>
+                        <th scope="col" class="px-6 py-3.5 w-[11%] text-center">Estado</th>
+                        <th scope="col" class="px-6 py-3.5 w-[10%] text-right">Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    {% for c in comisiones %}
+                    <tr class="hover:bg-slate-50/60 transition-colors group">
+                        <td class="px-6 py-4 font-semibold text-slate-900 break-words">
+                            {{ c.nombre }}
+                        </td>
+
+                        <td class="px-6 py-4 text-slate-600 font-medium break-words">
+                            {{ c.resolucion_designacion }}
+                        </td>
+
+                        <td class="px-6 py-4 text-slate-500 whitespace-nowrap">
+                            {{ c.fecha_inicio|date:"d/m/Y" }}
+                        </td>
+                        <td class="px-6 py-4 text-slate-500 whitespace-nowrap">
+                            {{ c.fecha_fin|date:"d/m/Y" }}
+                        </td>
+
+                        <td class="px-6 py-4 text-center whitespace-nowrap">
+                            {% if c.activo %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                    Activo
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-50 text-slate-600 border border-slate-200">
+                                    Inactivo
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="px-6 py-4 text-right whitespace-nowrap">
+                            <div class="flex justify-end gap-3">
+                                <a href="{% url 'detalle_comision' c.pk %}"
+                                   class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-semibold text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 rounded-lg py-1 px-2 hover:bg-indigo-50 transition"
+                                   aria-label="Ver detalle de {{ c.nombre }}">
+                                    <svg class="w-3.5 h-3.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                    <span>Ver</span>
+                                </a>
+
+                                <a href="{% url 'cargar_csv' c.pk %}"
+                                   class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-semibold text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 rounded-lg py-1 px-2 hover:bg-indigo-50 transition"
+                                   aria-label="Cargar CSV para {{ c.nombre }}">
+                                    <svg class="w-3.5 h-3.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                    </svg>
+                                    <span>Cargar CSV</span>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center justify-center">
+                                <div class="p-3 bg-slate-50 rounded-full text-slate-400 mb-3">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-sm font-semibold text-slate-800">No hay comisiones registradas</h3>
+                                <p class="text-xs text-slate-400 mt-1">Las resoluciones de grupos de trabajo para inventarios físicos aparecerán aquí.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

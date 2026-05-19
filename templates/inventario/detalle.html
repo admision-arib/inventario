@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{%block title %}Panel de Inventario - {{ comision.nombre }}{% endblock %}
+
+{% block content %}
+<div class="max-w-full mx-4 md:mx-6 mt-4 mb-6 animate-fade-in text-slate-700">
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-slate-200 gap-2 mb-4">
+        <div>
+            <h1 class="text-xl font-bold text-slate-900 tracking-tight">{{ comision.nombre }}</h1>
+            {% if area_id %}
+                <div class="mt-1 inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 px-2.5 py-0.5 rounded-lg text-xs font-semibold shadow-sm">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Área activa:
+                        {% for a in areas %}
+                            {% if a.id|stringformat:"s" == area_id %}{{ a.nombre }}{% endif %}
+                        {% endfor %}
+                    </span>
+                </div>
+            {% else %}
+                <p class="text-rose-600 text-xs mt-1 font-bold flex items-center gap-1 animate-pulse">
+                    ⚠️ Seleccione un área para iniciar el escaneo físico
+                </p>
+            {% endif %}
+        </div>
+        <div class="flex-shrink-0">
+            <a href="{% url 'acta_pdf' comision.id %}?area={{ area_id }}"
+               class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl shadow-sm transition-all text-xs font-semibold">
+                <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Generar Acta de Cierre
+            </a>
+        </div>
+    </div>
+
+    <div id="notif" class="hidden fixed top-4 right-4 px-4 py-2.5 rounded-xl text-white text-xs font-bold shadow-xl z-50 transition-all duration-300"></div>
+
+    <div class="grid lg:grid-cols-4 gap-4 items-start">
+
+        <div class="lg:col-span-1">
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-4 space-y-4">
+                <span class="block text-[10px] font-bold text-indigo-600 uppercase tracking-wider border-b border-slate-100 pb-1.5">Estructura de Comisión</span>
+
+                <div class="space-y-3.5">
+                    <div class="flex items-center gap-2.5 text-xs">
+                        <div class="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg flex-shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>
+                        <div class="truncate">
+                            <p class="text-[10px] font-medium text-slate-400 uppercase leading-none">Presidente</p>
+                            <p class="font-semibold text-slate-800 truncate">{{ comision.presidente.nombre_completo }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2.5 text-xs">
+                        <div class="p-1.5 bg-amber-50 text-amber-600 rounded-lg flex-shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></div>
+                        <div class="truncate">
+                            <p class="text-[10px] font-medium text-slate-400 uppercase leading-none">Veedor</p>
+                            <p class="font-semibold text-slate-800 truncate">{% if comision.veedor %}{{ comision.veedor.nombre_completo }}{% else %}<span class="text-slate-400 italic font-normal">No asignado</span>{% endif %}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-2.5 text-xs">
+                        <div class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg flex-shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+                        <div>
+                            <p class="text-[10px] font-medium text-slate-400 uppercase leading-none mb-1">Vocales</p>
+                            <div class="flex flex-col gap-1">
+                                {% for vocal in comision.vocales.all %}
+                                    <span class="bg-slate-50 text-slate-700 text-[11px] font-semibold px-2 py-1 rounded border border-slate-200/60 block">{{ vocal.nombre_completo }}</span>
+                                {% empty %}
+                                    <span class="text-slate-400 italic text-xs">Ninguno asignado</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 space-y-2 text-[11px] text-slate-500">
+                    <div><span class="font-medium text-slate-400 block">Resolución / Documento:</span> <span class="text-slate-700 font-semibold">{{ comision.resolucion_designacion }}</span></div>
+                    <div><span class="font-medium text-slate-400 block">Periodo de Vigencia:</span> <span class="text-slate-700 font-semibold">{{ comision.fecha_inicio|date:"d/m/Y" }} — {{ comision.fecha_fin|date:"d/m/Y" }}</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-3 space-y-4">
+
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
+                <div class="grid md:grid-cols-2 gap-4 items-end">
+
+                    <div>
+                        <label for="area_filter" class="block text-[10px] font-bold text-indigo-600 uppercase tracking-wider mb-1.5">1. Área Geográfica de Trabajo</label>
+                        <form method="get" class="flex gap-2">
+                            <select name="area" id="area_filter"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all">
+                                <option value="">Todas las áreas de la institución</option>
+                                {% for a in areas %}
+                                    <option value="{{ a.id }}" {% if a.id|stringformat:"s" == area_id %}selected{% endif %}>{{ a.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-semibold transition shadow-sm flex-shrink-0">Establecer</button>
+                        </form>
+                    </div>
+
+                    <div>
+                        <label for="scanner_input" class="block text-[10px] font-bold text-indigo-600 uppercase tracking-wider mb-1.5">2. Captura en Tiempo Real</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2m0 0H8m6 0h-2m0 0V9m0 0l-3 3m3-3l3 3m-9-3a9 9 0 110 18 9 9 0 010-18z"/></svg>
+                            </div>
+                            <input id="scanner_input" type="text"
+                                   class="w-full border-2 bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 pl-9 pr-3 py-1.5 rounded-xl text-xs font-bold transition-all placeholder:text-slate-400 shadow-inner"
+                                   placeholder="{% if area_id %}Alinee la lectora y escanee código QR...{% else %}Deshabilitado — Seleccione área primero...{% endif %}"
+                                   {% if not area_id %}disabled{% endif %} autofocus>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex items-center justify-between shadow-sm">
+                    <div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider leading-none">Total Cargados</div>
+                        <div class="text-xl font-black text-slate-900 mt-1">{{ total }}</div>
+                    </div>
+                    <div class="p-1.5 bg-white rounded-lg text-slate-500 border border-slate-100"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></div>
+                </div>
+
+                <div class="bg-emerald-50/60 border border-emerald-100 rounded-xl p-2.5 flex items-center justify-between shadow-sm">
+                    <div>
+                        <div class="text-[10px] text-emerald-700 font-bold uppercase tracking-wider leading-none">Encontrados</div>
+                        <div class="text-xl font-black text-emerald-900 mt-1">{{ encontrados }}</div>
+                    </div>
+                    <div class="p-1.5 bg-white rounded-lg text-emerald-600 border border-emerald-100"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+                </div>
+
+                <div class="bg-amber-50/60 border border-amber-100 rounded-xl p-2.5 flex items-center justify-between shadow-sm">
+                    <div>
+                        <div class="text-[10px] text-amber-700 font-bold uppercase tracking-wider leading-none">Sobrantes</div>
+                        <div class="text-xl font-black text-amber-900 mt-1">{{ sobrantes }}</div>
+                    </div>
+                    <div class="p-1.5 bg-white rounded-lg text-amber-600 border border-amber-100"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg></div>
+                </div>
+
+                <div class="bg-rose-50/60 border border-rose-100 rounded-xl p-2.5 flex items-center justify-between shadow-sm">
+                    <div>
+                        <div class="text-[10px] text-rose-700 font-bold uppercase tracking-wider leading-none">Faltantes</div>
+                        <div class="text-xl font-black text-rose-900 mt-1">{{ faltantes }}</div>
+                    </div>
+                    <div class="p-1.5 bg-white rounded-lg text-rose-600 border border-rose-100"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></div>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <div class="overflow-x-auto max-h-[440px] overflow-y-auto">
+                    <table class="min-w-full text-xs">
+                        <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                            <tr>
+                                <th scope="col" class="px-4 py-2.5 text-left bg-slate-50">Código Siga / Patrimonial</th>
+                                <th scope="col" class="px-4 py-2.5 text-left bg-slate-50">Descripción del Activo</th>
+                                <th scope="col" class="px-4 py-2.5 text-center bg-slate-50">Conciliación</th>
+                                <th scope="col" class="px-4 py-2.5 text-left bg-slate-50">Personal Responsable</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla_body" class="divide-y divide-slate-100 font-medium text-slate-700">
+                            {% for i in inventario %}
+                            <tr data-code="{{ i.codigo }}"
+                                class="transition-colors duration-150 {% if i.estado == 'NO_ENCONTRADO' %}bg-rose-50/40 hover:bg-rose-50{% else %}hover:bg-slate-50/80{% endif %}">
+                                <td class="px-4 py-2.5 font-bold text-slate-900 whitespace-nowrap">{{ i.codigo }}</td>
+                                <td class="px-4 py-2.5 text-slate-600 max-w-xs truncate">{{ i.denominacion }}</td>
+                                <td class="px-4 py-2.5 text-center" id="estado-{{ i.codigo }}">
+                                    {% if i.estado == 'ENCONTRADO' %}
+                                        <span class="inline-flex items-center gap-1 text-emerald-600 bg-emerald-100/60 border border-emerald-200 px-2 py-0.5 rounded-full font-bold text-[10px]">
+                                            ● Encontrado
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center gap-1 text-rose-600 bg-rose-100/60 border border-rose-200 px-2 py-0.5 rounded-full font-bold text-[10px]">
+                                            ✕ Faltante
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="td-responsable px-4 py-2.5 text-slate-500 whitespace-nowrap">
+                                    {% if i.responsable %}{{ i.responsable }}{% else %}<span class="text-slate-400 text-[11px] italic font-normal">Sin asignar</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="px-4 py-8 text-center text-slate-400 italic bg-slate-200/20">No se encontraron bienes vinculados en este cuadrante.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<audio id="beep" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
+
+<script>
+(function() {
+    const scanner = document.getElementById("scanner_input");
+    const notif = document.getElementById("notif");
+    const beep = document.getElementById("beep");
+
+    function mostrarNotif(msg, tipo) {
+        if (!notif) return;
+        notif.textContent = msg;
+        notif.className = "fixed top-4 right-4 px-4 py-2.5 rounded-xl text-white text-xs font-bold shadow-xl z-50 transition-all duration-300";
+        if (tipo === "ok") notif.classList.add("bg-emerald-600");
+        else if (tipo === "warn") notif.classList.add("bg-amber-500");
+        else if (tipo === "error") notif.classList.add("bg-rose-600");
+        notif.classList.remove("hidden");
+        setTimeout(() => notif.classList.add("hidden"), 2000);
+    }
+
+    function reproducirBeep() {
+        if (beep) {
+            beep.currentTime = 0;
+            beep.play().catch(() => {});
+        }
+    }
+
+    if (scanner) {
+        scanner.addEventListener("keydown", function(e) {
+            if (e.key !== "Enter") return;
+            e.preventDefault();
+
+            const codigo = this.value.trim();
+            if (!codigo) {
+                mostrarNotif("Código vacío", "error");
+                return;
+            }
+
+            this.disabled = true;
+            this.placeholder = "Buscando...";
+
+            fetch(`/inventario/escanear/?codigo=${encodeURIComponent(codigo)}&comision={{ comision.id }}&area={{ area_id }}`)
+                .then(res => {
+                    if (!res.ok) throw new Error("Error del servidor");
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.estado === "INVALIDO") {
+                        mostrarNotif("Código no registrado en sistema", "error");
+                        return;
+                    }
+                    if (data.estado === "AREA_INVALIDA") {
+                        mostrarNotif("El activo pertenece a otra área institucional", "error");
+                        return;
+                    }
+                    if (data.estado === "REPETIDO") {
+                        mostrarNotif("Activo ya registrado previamente", "warn");
+                        return;
+                    }
+
+                    const row = document.querySelector(`tr[data-code="${data.codigo}"]`);
+                    if (row) {
+                        row.classList.remove("bg-rose-50/40", "hover:bg-rose-50");
+                        row.classList.add("bg-emerald-100");
+                        setTimeout(() => {
+                            row.classList.remove("bg-emerald-100");
+                            row.classList.add("hover:bg-slate-50/80");
+                        }, 1500);
+
+                        const estadoCelda = document.getElementById(`estado-${data.codigo}`);
+                        if (estadoCelda) {
+                            estadoCelda.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-600 bg-emerald-100/60 border border-emerald-200 px-2 py-0.5 rounded-full font-bold text-[10px]">● Encontrado</span>`;
+                        }
+
+                        const respCelda = row.querySelector(".td-responsable");
+                        if (respCelda) respCelda.textContent = data.responsable || "Sin asignar";
+
+                        reproducirBeep();
+                        mostrarNotif("Activo conciliado con éxito", "ok");
+                    } else {
+                        mostrarNotif("Sobrante detectado. Actualizando panel...", "ok");
+                        setTimeout(() => location.reload(), 800);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    mostrarNotif("Error crítico de conexión", "error");
+                })
+                .finally(() => {
+                    this.value = "";
+                    this.disabled = false;
+                    this.placeholder = "Alinee la lectora y escanee código QR...";
+                    this.focus();
+                });
+        });
+    }
+})();
+</script>
+{% endblock %}
+

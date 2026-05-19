@@ -1,0 +1,223 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIPAT - Inventario</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-indigo-600 text-white px-4 py-2 rounded-xl z-50 shadow-lg">
+    Saltar al contenido principal
+</a>
+
+<div class="flex min-h-screen relative">
+
+    <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 hidden lg:hidden"></div>
+
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-slate-950 text-slate-400 flex flex-col transform -translate-x-full transition-transform duration-300 lg:relative lg:translate-x-0 lg:z-auto border-r border-slate-800/50">
+
+        <div class="p-6 border-b border-slate-900 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-white tracking-tight">SIPAT</h2>
+                <p class="text-xs text-indigo-400/80 font-medium">Inventario Patrimonial</p>
+            </div>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto text-sm font-medium" aria-label="Navegación principal">
+
+            {% if request.user.is_authenticated %}
+            <!-- Sección BIENES (visible para todos los usuarios que pueden ver bienes) -->
+            {% if request.user.puede_gestionar_bienes or request.user.es_auditor or request.user.es_consulta or request.user.es_responsable_bien or request.user.es_inventariador %}
+            <div class="pt-2 pb-1 text-[11px] font-bold text-slate-500 uppercase tracking-widest px-3">
+                Bienes
+            </div>
+
+            <a href="{% url 'lista_bienes' %}"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
+                      {% if request.resolver_match.url_name == 'lista_bienes' %} bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md shadow-indigo-600/10 {% else %} hover:bg-slate-900 hover:text-slate-200 {% endif %}"
+               {% if request.resolver_match.url_name == 'lista_bienes' %}aria-current="page"{% endif %}>
+                <svg class="w-5 h-5 flex-shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                <span>Bienes</span>
+            </a>
+            {% endif %}
+
+            <!-- ALTA BIEN (solo ADMIN y CONTROL_PATRIMONIAL) -->
+            {% if request.user.puede_gestionar_bienes %}
+            <a href="{% url 'crear_bienes' %}"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
+                      {% if request.resolver_match.url_name == 'crear_bienes' %} bg-indigo-600 text-white {% else %} hover:bg-slate-900 hover:text-slate-200 {% endif %}">
+                <svg class="w-5 h-5 flex-shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <span>Alta Bien</span>
+            </a>
+            {% endif %}
+
+            <!-- TRANSFERENCIAS (solo ADMIN y CONTROL_PATRIMONIAL) -->
+            {% if request.user.puede_gestionar_bienes %}
+            <a href="{% url 'crear_movimiento' %}"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
+                      {% if request.resolver_match.url_name == 'crear_movimiento' %} bg-indigo-600 text-white {% else %} hover:bg-slate-900 hover:text-slate-200 {% endif %}">
+                <svg class="w-5 h-5 flex-shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span>Transferencias</span>
+            </a>
+            {% endif %}
+
+            <!-- Sección INVENTARIO (visible para todos los autenticados) -->
+            {% if request.user.puede_gestionar_bienes %}
+            <div class="pt-4 pb-1 text-[11px] font-bold text-slate-500 uppercase tracking-widest px-3">
+                Inventario
+            </div>
+            <a href="{% url 'lista_comisiones' %}"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
+                      {% if request.resolver_match.url_name == 'lista_comisiones' %} bg-indigo-600 text-white {% else %} hover:bg-slate-900 hover:text-slate-200 {% endif %}">
+                <svg class="w-5 h-5 flex-shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span>Comisiones</span>
+            </a>
+            {% endif %}
+
+            <!-- Sección USUARIOS (solo ADMIN) -->
+            {% if request.user.puede_gestionar_usuarios %}
+            <div class="pt-4 pb-1 text-[11px] font-bold text-slate-500 uppercase tracking-widest px-3">
+                Usuarios
+            </div>
+
+            <a href="{% url 'lista_usuarios' %}"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
+                      {% if request.resolver_match.url_name == 'lista_usuarios' %} bg-indigo-600 text-white {% else %} hover:bg-slate-900 hover:text-slate-200 {% endif %}">
+                <svg class="w-5 h-5 flex-shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                </svg>
+                <span>Usuarios</span>
+            </a>
+            {% endif %}
+
+            <!-- REPORTES (ADMIN, CONTROL_PATRIMONIAL, AUDITOR) -->
+            {% if request.user.puede_ver_reportes %}
+            <a href="{% url 'reportes' %}"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
+                      {% if request.resolver_match.url_name == 'reportes' %} bg-indigo-600 text-white {% else %} hover:bg-slate-900 hover:text-slate-200 {% endif %}">
+                <svg class="w-5 h-5 flex-shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                <span>Reportes</span>
+            </a>
+            {% endif %}
+
+            {% else %}
+            <!-- Usuario no autenticado: no se muestra nada o solo un enlace al login -->
+            {% endif %}
+        </nav>
+
+        <div class="p-4 border-t border-slate-900 bg-slate-950/60">
+            {% if request.user.is_authenticated %}
+                <div class="flex flex-col gap-1 px-2">
+                    <span class="font-semibold text-slate-200 truncate">{{ request.user.nombre_completo|default:"Yerson Pariapaza" }}</span>
+                    <span class="text-xs text-indigo-400/80 font-medium truncate">
+    {% if request.user.roles.all %}
+        {% for rol in request.user.roles.all %}
+            {{ rol.get_codigo_display }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    {% else %}
+        Sin rol asignado
+    {% endif %}
+</span>
+                    <form action="{% url 'logout' %}" method="post" class="mt-2">
+                        {% csrf_token %}
+                        <button type="submit" class="text-xs text-slate-500 hover:text-rose-400 transition font-medium flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                            Cerrar sesión
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <a href="{% url 'login' %}" class="flex items-center justify-center py-2 px-3 rounded-xl bg-slate-900 text-slate-200 text-xs font-semibold hover:bg-slate-800 transition">Iniciar sesión</a>
+            {% endif %}
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+
+        <header class="bg-white border-b border-slate-200/80 px-6 py-4 flex justify-between items-center sticky top-0 z-20 backdrop-blur-md bg-white/95">
+            <div class="flex items-center gap-3">
+                <button id="menu-toggle" class="lg:hidden p-2 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none" aria-label="Abrir menú">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 tracking-tight">Sistema de Inventario Patrimonial</h1>
+                    <p class="text-xs text-slate-500 font-medium hidden sm:block">Gestión unificada de bienes institucionales, control físico y conciliaciones</p>
+                </div>
+            </div>
+
+            <button class="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 border border-slate-200/60 relative" aria-label="Notificaciones">
+                <span class="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-indigo-600"></span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            </button>
+        </header>
+
+        <main id="main-content" class="p-6 flex-1 max-w-[1600px] w-full mx-auto">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="mb-5 p-4 rounded-xl text-sm font-medium shadow-sm border
+                        {% if 'success' in message.tags %} bg-emerald-50 border-emerald-200 text-emerald-800
+                        {% elif 'error' in message.tags %} bg-rose-50 border-rose-200 text-rose-800
+                        {% else %} bg-indigo-50 border-indigo-200 text-indigo-800 {% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const toggleBtn = document.getElementById('menu-toggle');
+
+        if (toggleBtn && sidebar && overlay) {
+            function openSidebar() {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            }
+            function closeSidebar() {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+            toggleBtn.addEventListener('click', () => {
+                if (sidebar.classList.contains('-translate-x-full')) openSidebar();
+                else closeSidebar();
+            });
+            overlay.addEventListener('click', closeSidebar);
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !sidebar.classList.contains('-translate-x-full')) closeSidebar();
+            });
+        }
+    })();
+</script>
+</body>
+</html>

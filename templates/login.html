@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIPAT – Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="relative min-h-screen flex items-center justify-center bg-[#0f172a] overflow-hidden font-sans">
+
+    <div class="absolute inset-0 z-0 overflow-hidden">
+        <div class="absolute -top-[30%] -left-[10%] w-[80vw] h-[80vw] md:w-[50vw] md:h-[50vw] rounded-full bg-gradient-to-br from-indigo-600/50 via-purple-600/40 to-transparent blur-3xl"></div>
+        <div class="absolute -bottom-[20%] -right-[10%] w-[70vw] h-[70vw] md:w-[45vw] md:h-[45vw] rounded-full bg-gradient-to-tr from-blue-600/40 via-indigo-500/30 to-transparent blur-3xl"></div>
+        <div class="absolute top-[20%] right-[15%] w-32 h-32 rounded-full bg-indigo-400/20 blur-xl animate-pulse"></div>
+        <div class="absolute bottom-[30%] left-[10%] w-24 h-24 rounded-full bg-blue-400/10 blur-lg"></div>
+    </div>
+
+    <div class="relative z-10 w-full max-w-md px-6">
+
+        <div class="bg-white/[0.07] backdrop-blur-xl border border-white/[0.12] rounded-3xl p-8 shadow-2xl shadow-black/40">
+
+            <div class="text-center mb-8">
+                <div class="mx-auto w-16 h-16 flex items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-lg shadow-indigo-500/30 border border-white/20">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                </div>
+
+                <h1 class="mt-4 text-2xl font-bold tracking-tight text-white">
+                    ¡Bienvenido de nuevo!
+                </h1>
+                <p class="mt-1 text-sm text-indigo-200/70 font-medium">
+                    SIPAT — Sistema de Inventario Patrimonial
+                </p>
+            </div>
+
+            {% if form.non_field_errors %}
+            <div class="mb-5 px-4 py-3 text-xs rounded-xl bg-red-500/20 border border-red-500/30 text-red-200 text-center backdrop-blur-sm">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80">DNI</label>
+                    <div class="relative">
+                        <input type="text"
+                            name="{{ form.username.name }}"
+                            value="{{ form.username.value|default:'' }}"
+                            class="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 transition-all duration-200"
+                            placeholder="Ingrese su DNI"
+                            autofocus>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <div class="flex justify-between items-center">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80">Contraseña</label>
+                        <a href="#" class="text-xs text-indigo-400 hover:text-indigo-300 transition">¿Olvidaste tu contraseña?</a>
+                    </div>
+                    <div class="relative">
+                        <input type="password"
+                            name="{{ form.password.name }}"
+                            class="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 transition-all duration-200"
+                            placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 pt-1">
+                    <input type="checkbox" id="remember" class="w-4 h-4 rounded border-white/20 bg-white/10 text-indigo-600 focus:ring-indigo-500/50 accent-indigo-500">
+                    <label id="remember" class="text-xs text-indigo-200/70 select-none">Recordar mi sesión</label>
+                </div>
+
+                <button type="submit"
+                    class="w-full mt-2 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/40 transition-all duration-200 transform active:scale-[0.98]">
+                    Iniciar sesión
+                </button>
+
+            </form>
+        </div>
+
+        <footer class="text-center text-xs text-indigo-200/40 mt-8 font-medium">
+            &copy; {{ now|date:"Y" }} IESTP ARIB &bull; Todos los derechos reservados
+        </footer>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Movimientos{% endblock %}
+
+{% block content %}
+<div class="max-w-full mx-4 md:mx-8 mt-6 mb-12 animate-fade-in">
+
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Movimientos de Bienes</h1>
+            <p class="text-sm text-slate-500 mt-0.5">Historial y auditoría de transferencias, asignaciones y cambios de custodios en tiempo real.</p>
+        </div>
+        <div>
+            <a href="{% url 'crear_movimiento' %}"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold rounded-xl shadow-md hover:shadow-indigo-500/10 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Nuevo Movimiento
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-3 text-sm">
+                    <div class="p-1 bg-emerald-100 rounded-lg text-emerald-700 flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <span class="font-medium">{{ message }}</span>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden w-full">
+
+        <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-4 bg-indigo-600 rounded-full"></span>
+                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Transacciones Registradas</span>
+            </div>
+        </div>
+
+        <div class="w-full">
+            <table class="w-full text-left border-collapse table-auto">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                        <th class="px-6 py-3.5 w-[12%]">Fecha / Hora</th>
+                        <th class="px-6 py-3.5 w-[28%]">Activo Patrimonial</th>
+                        <th class="px-6 py-3.5 w-[15%] text-center">Tipo Operación</th>
+                        <th class="px-6 py-3.5 w-[20%]">Origen (Despacha)</th>
+                        <th class="px-6 py-3.5 w-[20%]">Destino (Recibe)</th>
+                        <th class="px-6 py-3.5 w-[5%] text-right">Operador</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                    {% for mov in movimientos %}
+                    <tr class="hover:bg-slate-50/60 transition-colors group">
+                        <td class="px-6 py-4 font-medium text-slate-600">
+                            <div class="whitespace-nowrap">
+                                {{ mov.fecha_movimiento|date:"d/m/Y" }}
+                                <span class="block text-xs text-slate-400 font-normal mt-0.5">{{ mov.fecha_movimiento|date:"H:i" }} hrs</span>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-indigo-600 text-xs tracking-wide">{{ mov.bien.codigo_patrimonial }}</span>
+                                <span class="text-slate-800 font-medium mt-0.5 break-words line-clamp-2" title="{{ mov.bien.denominacion }}">
+                                    {{ mov.bien.denominacion }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4 text-center">
+                            {% if "Prestamo" in mov.get_tipo_movimiento_display or "Temporal" in mov.get_tipo_movimiento_display %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
+                                    {{ mov.get_tipo_movimiento_display }}
+                                </span>
+                            {% elif "Asignacion" in mov.get_tipo_movimiento_display or "Alta" in mov.get_tipo_movimiento_display %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 whitespace-nowrap">
+                                    {{ mov.get_tipo_movimiento_display }}
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-50 text-indigo-800 border border-indigo-200 whitespace-nowrap">
+                                    {{ mov.get_tipo_movimiento_display }}
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col break-words">
+                                <span class="text-slate-900 font-medium leading-tight">{{ mov.sede_origen|default:"-" }}</span>
+                                <span class="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                                    <svg class="w-3 h-3 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                    <span class="truncate max-w-[180px]">{{ mov.usuario_origen|default:"-" }}</span>
+                                </span>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col break-words">
+                                <span class="text-slate-900 font-medium leading-tight">{{ mov.sede_destino|default:"-" }}</span>
+                                <span class="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                                    <svg class="w-3 h-3 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                    <span class="truncate max-w-[180px]">{{ mov.usuario_destino|default:"-" }}</span>
+                                </span>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4 text-right">
+                            <span class="bg-slate-100 py-1 px-2.5 rounded-lg text-xs font-medium text-slate-600 inline-block whitespace-nowrap">
+                                {{ mov.registrado_por }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center justify-center">
+                                <div class="p-3 bg-slate-50 rounded-full text-slate-400 mb-3">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-sm font-semibold text-slate-800">No hay movimientos registrados</h3>
+                                <p class="text-xs text-slate-400 mt-1">Todas las transferencias de activos que realices aparecerán listadas aquí.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

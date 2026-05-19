@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Sedes{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white shadow rounded-lg p-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Sedes del IESTP</h1>
+        <a href="{% url 'crear_sede' %}" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            + Nueva Sede
+        </a>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="p-3 {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-700{% endif %} rounded">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <table class="min-w-full bg-white border rounded-lg overflow-hidden">
+        <thead>
+            <tr class="bg-gray-100">
+                <th class="px-4 py-2 text-left">Código</th>
+                <th class="px-4 py-2 text-left">Nombre</th>
+                <th class="px-4 py-2 text-left">Dirección</th>
+                <th class="px-4 py-2 text-left">Estado</th>
+                <th class="px-4 py-2 text-left">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sede in sedes %}
+            <tr class="border-t {% if not sede.activo %}bg-gray-50 text-gray-400{% endif %}">
+                <td class="px-4 py-2">{{ sede.codigo }}</td>
+                <td class="px-4 py-2">{{ sede.nombre }}</td>
+                <td class="px-4 py-2">{{ sede.direccion|truncatechars:40 }}</td>
+                <td class="px-4 py-2">
+                    {% if sede.activo %}
+                        <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Activo</span>
+                    {% else %}
+                        <span class="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">Inactivo</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-2 space-x-2">
+                    <a href="{% url 'editar_sede' sede.pk %}" class="text-blue-600 hover:underline">Editar</a>
+                    {% if sede.activo %}
+                        <a href="{% url 'desactivar_sede' sede.pk %}" class="text-red-600 hover:underline">Desactivar</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="px-4 py-8 text-center text-gray-500">No hay sedes registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

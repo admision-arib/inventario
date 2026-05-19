@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ accion }} Sede{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto bg-white shadow rounded-lg p-8">
+    <h1 class="text-2xl font-bold mb-6 text-gray-800">{{ accion }} Sede</h1>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="text-red-500 text-sm">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700">{{ form.codigo.label }}</label>
+            {{ form.codigo }}
+            {{ form.codigo.errors }}
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium">{{ form.nombre.label }}</label>
+            {{ form.nombre }}
+            {{ form.nombre.errors }}
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium">{{ form.direccion.label }}</label>
+            {{ form.direccion }}
+            {{ form.direccion.errors }}
+        </div>
+
+        <div class="flex items-center space-x-2">
+            {{ form.activo }}
+            <label class="text-sm font-medium">{{ form.activo.label }} (¿Sede activa?)</label>
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-4">
+            <a href="{% url 'lista_sedes' %}" class="px-4 py-2 border rounded-md">Cancelar</a>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Guardar</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

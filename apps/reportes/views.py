@@ -1,3 +1,9 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 
-# Create your views here.
+@login_required
+def reportes(request):
+    contexto = {
+        'titulo': 'Reportes del Sistema',
+    }
+    return render(request, 'reportes.html', contexto)

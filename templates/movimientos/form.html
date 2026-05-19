@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Movimiento{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto mt-4 px-4 mb-6">
+
+    <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+        <div>
+            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Registrar Movimiento de Bienes</h1>
+            <p class="text-xs text-slate-500">Transfiera o asigne activos de forma inmediata.</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'lista_movimientos' %}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg text-xs transition">
+                Cancelar
+            </a>
+            <button type="submit" form="movimiento-form" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-xs shadow-sm transition">
+                Registrar
+            </button>
+        </div>
+    </div>
+
+    {% if form.errors %}
+        <div class="mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-900 rounded-xl flex items-start gap-2 text-xs animate-fade-in">
+            <svg class="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+                <ul class="list-disc list-inside space-y-0.5 text-rose-800">
+                    {% for field in form %}{% for error in field.errors %}
+                        <li><strong>{{ field.label }}</strong>: {{ error }}</li>
+                    {% endfor %}{% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+
+    <form id="movimiento-form" method="post" novalidate class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 [&_select]:w-full [&_select]:bg-slate-50 [&_select]:border [&_select]:border-slate-200 [&_select]:rounded-lg [&_select]:px-3 [&_select]:py-1.5 [&_select]:text-xs [&_select]:focus:bg-white [&_select]:focus:ring-2 [&_select]:focus:ring-indigo-500/20 [&_select]:focus:border-indigo-500 [&_input]:w-full [&_input]:bg-slate-50 [&_input]:border [&_input]:border-slate-200 [&_input]:rounded-lg [&_input]:px-3 [&_input]:py-1.5 [&_input]:text-xs [&_input]:focus:bg-white [&_input]:focus:ring-2 [&_input]:focus:ring-indigo-500/20 [&_input]:focus:border-indigo-500 [&_#bien_search]:pl-9 [&_textarea]:w-full [&_textarea]:bg-slate-50 [&_textarea]:border [&_textarea]:border-slate-200 [&_textarea]:rounded-lg [&_textarea]:px-3 [&_textarea]:py-1.5 [&_textarea]:text-xs [&_textarea]:focus:bg-white [&_textarea]:focus:ring-2 [&_textarea]:focus:ring-indigo-500/20 [&_textarea]:focus:border-indigo-500">
+        {% csrf_token %}
+
+        <div class="grid md:grid-cols-3 gap-4 items-start">
+            <div class="md:col-span-2 relative">
+                <label for="bien_search" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">1. Buscar Activo Patrimonial *</label>
+                <div class="relative w-full">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 z-20">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input type="text" id="bien_search"
+                           class="placeholder-slate-400 font-medium relative z-10 focus:outline-none"
+                           placeholder="Escriba código o descripción..." autocomplete="off" role="combobox" aria-expanded="false" aria-controls="resultados-bien-listbox">
+                </div>
+                <div style="display:none;">{{ form.bien }}</div>
+
+                <div id="resultados_bien" class="absolute left-0 right-0 bg-white border border-slate-200 shadow-2xl rounded-lg mt-1 hidden max-h-48 overflow-y-auto z-50 divide-y divide-slate-100" role="listbox"></div>
+            </div>
+
+            <div>
+                <label for="{{ form.tipo_movimiento.id_for_label }}" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Tipo de Movimiento</label>
+                {{ form.tipo_movimiento }}
+            </div>
+        </div>
+
+        <div class="border-t border-slate-100 pt-3">
+            <span class="block text-[10px] font-bold text-indigo-600 uppercase tracking-wider mb-2">Ruta Física</span>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label for="{{ form.sede_origen.id_for_label }}" class="block text-xs font-medium text-slate-500 mb-1">Sede Origen</label>
+                    {{ form.sede_origen }}
+                </div>
+                <div>
+                    <label for="{{ form.sede_destino.id_for_label }}" class="block text-xs font-medium text-slate-500 mb-1">Sede Destino</label>
+                    {{ form.sede_destino }}
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-slate-100 pt-3">
+            <span class="block text-[10px] font-bold text-indigo-600 uppercase tracking-wider mb-2">Asignación de Personal</span>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label for="{{ form.usuario_origen.id_for_label }}" class="block text-xs font-medium text-slate-500 mb-1">Usuario Origen (Entrega)</label>
+                    {{ form.usuario_origen }}
+                </div>
+                <div>
+                    <label for="{{ form.usuario_destino.id_for_label }}" class="block text-xs font-medium text-slate-500 mb-1">Usuario Destino (Recibe)</label>
+                    {{ form.usuario_destino }}
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-slate-100 pt-3 grid md:grid-cols-3 gap-4">
+            <div>
+                <label for="{{ form.documento_autorizacion.id_for_label }}" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Documento Sustento</label>
+                {{ form.documento_autorizacion }}
+            </div>
+            <div class="md:col-span-2">
+                <label for="{{ form.observaciones.id_for_label }}" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Observaciones</label>
+                {{ form.observaciones }}
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+(function() {
+    const inputBien = document.getElementById('bien_search');
+    const resultadosDiv = document.getElementById('resultados_bien');
+    if (!inputBien || !resultadosDiv) return;
+
+    let currentIndex = -1;
+    let resultadosItems = [];
+
+    function limpiarResultados() {
+        resultadosDiv.innerHTML = "";
+        resultadosDiv.classList.add("hidden");
+        inputBien.setAttribute("aria-expanded", "false");
+        currentIndex = -1;
+        resultadosItems = [];
+    }
+
+    function seleccionarItem(item) {
+        inputBien.value = item.codigo + " - " + item.denominacion;
+        const campoOculto = document.getElementById("{{ form.bien.id_for_label }}");
+        if (campoOculto) campoOculto.value = item.id;
+        limpiarResultados();
+
+        // Obtener datos de origen del bien y autocompletar
+        fetch(`/bienes/api/datos-origen/${item.id}/`)
+            .then(res => {
+                if (!res.ok) throw new Error('Error al obtener datos de origen');
+                return res.json();
+            })
+            .then(data => {
+                const sedeOrigenSelect = document.getElementById("{{ form.sede_origen.id_for_label }}");
+                const usuarioOrigenSelect = document.getElementById("{{ form.usuario_origen.id_for_label }}");
+
+                if (sedeOrigenSelect && data.sede_origen_id) {
+                    sedeOrigenSelect.value = data.sede_origen_id;
+                }
+                if (usuarioOrigenSelect && data.usuario_origen_id) {
+                    usuarioOrigenSelect.value = data.usuario_origen_id;
+                }
+            })
+            .catch(err => console.error('Error en autocompletado de origen', err));
+    }
+
+    function renderizarResultados(data) {
+        limpiarResultados();
+        if (!data.length) {
+            resultadosDiv.innerHTML = '<div class="p-3 text-xs text-slate-400 text-center bg-white">No hay coincidencias</div>';
+            resultadosDiv.classList.remove("hidden");
+            inputBien.setAttribute("aria-expanded", "true");
+            return;
+        }
+
+        data.forEach((item, idx) => {
+            let div = document.createElement("div");
+            div.className = "p-2.5 hover:bg-slate-50 cursor-pointer flex items-center justify-between text-xs transition-colors bg-white";
+            div.setAttribute("role", "option");
+            div.setAttribute("id", "resultado-bien-" + idx);
+            div.innerHTML = `
+                <div class="flex flex-col">
+                    <span class="font-bold text-indigo-600">${item.codigo}</span>
+                    <span class="text-slate-700 font-medium">${item.denominacion}</span>
+                </div>
+            `;
+            div.tabIndex = -1;
+            div.addEventListener("click", () => seleccionarItem(item));
+            resultadosDiv.appendChild(div);
+            resultadosItems.push(div);
+        });
+
+        resultadosDiv.classList.remove("hidden");
+        inputBien.setAttribute("aria-expanded", "true");
+        currentIndex = -1;
+    }
+
+    function buscarBien(query) {
+        fetch(`/bienes/buscar-bien/?q=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => renderizarResultados(data))
+            .catch(err => console.error(err));
+    }
+
+    inputBien.addEventListener('keyup', function(e) {
+        if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter" || e.key === "Escape") return;
+        const query = this.value.trim();
+        if (query.length < 2) { limpiarResultados(); return; }
+        buscarBien(query);
+    });
+
+    inputBien.addEventListener('keydown', function(e) {
+        if (!resultadosItems.length) return;
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            currentIndex = (currentIndex + 1) % resultadosItems.length;
+            resaltarItem();
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            currentIndex = (currentIndex - 1 + resultadosItems.length) % resultadosItems.length;
+            resaltarItem();
+        } else if (e.key === "Enter") {
+            e.preventDefault();
+            if (currentIndex >= 0 && resultadosItems[currentIndex]) resultadosItems[currentIndex].click();
+        } else if (e.key === "Escape") {
+            limpiarResultados();
+        }
+    });
+
+    function resaltarItem() {
+        resultadosItems.forEach((item, idx) => {
+            if (idx === currentIndex) {
+                item.classList.add("bg-indigo-50", "outline-none");
+                item.focus();
+            } else {
+                item.classList.remove("bg-indigo-50", "outline-none");
+            }
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!inputBien.contains(e.target) && !resultadosDiv.contains(e.target)) limpiarResultados();
+    });
+})();
+</script>
+{% endblock %}

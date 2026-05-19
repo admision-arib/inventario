@@ -1,0 +1,552 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="w-full max-w-5xl mx-auto my-2 bg-white p-4 sm:p-6 md:p-8 rounded-2xl border border-slate-200/90 shadow-sm box-border overflow-hidden">
+
+    <div class="border-b border-slate-100 pb-4 mb-6">
+        <h2 class="text-xl font-bold text-slate-900 tracking-tight">Registro de Bien Patrimonial</h2>
+        <p class="text-xs text-slate-500 font-medium mt-0.5">Ingrese las especificaciones técnicas, adquisición y asignación del activo.</p>
+    </div>
+
+    <form method="post" novalidate class="space-y-6 block w-full">
+        {% csrf_token %}
+
+        {% if form.errors %}
+            <div class="p-4 bg-rose-50 border border-rose-200 text-rose-900 rounded-xl flex items-start gap-3 text-sm font-medium shadow-sm break-words">
+                <svg class="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div class="min-w-0 flex-1">
+                    <p class="font-bold text-rose-800">Por favor, corrija los siguientes campos:</p>
+                    <ul class="list-disc list-inside mt-1.5 space-y-1 text-xs text-rose-700 font-normal">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li><span class="font-semibold">{{ field.label }}</span>: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
+            <div class="relative w-full min-w-0">
+                <label for="catalogo_search" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Buscar catálogo *</label>
+
+                <!-- Fila con buscador y botón Nuevo ítem -->
+                <div class="flex gap-2">
+                    <div class="relative w-full">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </span>
+                        <input type="text" id="catalogo_search"
+                               class="w-full border border-slate-200 bg-slate-50/50 rounded-xl pl-9 pr-4 py-2.5 text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all box-border"
+                               placeholder="Ej. Escritorio, Monitor, etc..."
+                               autocomplete="off" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-autocomplete="list" aria-controls="resultados-listbox">
+                    </div>
+                    {% if request.user.puede_gestionar_bienes %}
+                    <button type="button" id="btn-agregar-catalogo"
+                            class="px-3 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl hover:bg-indigo-100 text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap transition-colors border border-indigo-100"
+                            title="Agregar nuevo ítem al catálogo">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span>Nuevo ítem</span>
+                    </button>
+                    {% endif %}
+                </div>
+
+                <!-- Campo oculto del catálogo -->
+                <div style="display:none;">{{ form.catalogo }}</div>
+
+                <!-- Resultados -->
+                <div id="resultados"
+                     class="absolute bg-white border border-slate-200/90 shadow-xl rounded-xl mt-1.5 w-full hidden max-h-56 overflow-y-auto z-50 divide-y divide-slate-50"
+                     role="listbox"></div>
+            </div>
+
+            <div class="w-full min-w-0">
+                <label for="{{ form.denominacion.id_for_label }}" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Denominación</label>
+                <div class="django-input-wrapper w-full">
+                    {{ form.denominacion }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para nuevo ítem del catálogo -->
+        <div id="modal-nuevo-item" class="hidden p-5 bg-slate-50 border border-slate-200 rounded-xl w-full">
+            <h4 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Registrar nuevo ítem en el catálogo SIGA
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="nuevo-codigo" class="block text-xs font-semibold text-slate-600 mb-1">Código SIGA</label>
+                    <input type="text" id="nuevo-codigo" class="w-full border border-slate-200 bg-white rounded-lg px-3 py-2 text-sm" placeholder="Ej: EST-001">
+                </div>
+                <div>
+                    <label for="nuevo-nombre" class="block text-xs font-semibold text-slate-600 mb-1">Denominación</label>
+                    <input type="text" id="nuevo-nombre" class="w-full border border-slate-200 bg-white rounded-lg px-3 py-2 text-sm" placeholder="Ej: Estación total Sokkia">
+                </div>
+            </div>
+            <div class="flex gap-2 justify-end">
+                <button type="button" id="btn-cancelar-item" class="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 transition">Cancelar</button>
+                <button type="button" id="btn-guardar-item" class="px-4 py-2 text-sm font-semibold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition">Guardar ítem</button>
+            </div>
+        </div>
+
+        <div class="w-full">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-3 flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> Documento de Sustento
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 bg-slate-50/40 p-4 rounded-2xl border border-slate-100 w-full box-border">
+                <div class="min-w-0 w-full">
+                    <label for="{{ form.tipo_doc_adquisicion.id_for_label }}" class="block text-xs font-semibold text-slate-600 mb-1.5">Tipo Documento</label>
+                    <div class="django-input-wrapper w-full">
+                        {{ form.tipo_doc_adquisicion }}
+                    </div>
+                </div>
+
+                <div class="min-w-0 w-full">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Tipo Movimiento</label>
+                    <div id="tipo_movimiento_badge"
+                         class="w-full inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide bg-slate-100 text-slate-400 border border-slate-200 uppercase select-none box-border min-h-[42px]">
+                        —
+                    </div>
+                    <div style="display:none;">{{ form.tipo_movimiento.as_hidden }}</div>
+                </div>
+
+                <div id="transferenciaField" class="min-w-0 w-full" style="display: none;">
+                    <label for="{{ form.tipo_transferencia.id_for_label }}" class="block text-xs font-semibold text-slate-600 mb-1.5">Tipo Transferencia</label>
+                    <div class="django-input-wrapper w-full">
+                        {{ form.tipo_transferencia }}
+                    </div>
+                </div>
+
+                <div class="min-w-0 w-full">
+                    <label for="{{ form.numero_documento.id_for_label }}" class="block text-xs font-semibold text-slate-600 mb-1.5">Número Documento</label>
+                    <div class="django-input-wrapper w-full">
+                        {{ form.numero_documento }}
+                    </div>
+                </div>
+
+                <div class="min-w-0 w-full">
+                    <label for="{{ form.valor_documento.id_for_label }}" class="block text-xs font-semibold text-slate-600 mb-1.5">Valor (S/.)</label>
+                    <div class="django-input-wrapper w-full">
+                        {{ form.valor_documento }}
+                    </div>
+                </div>
+
+                <div class="min-w-0 w-full">
+                    <label for="{{ form.fecha_documento.id_for_label }}" class="block text-xs font-semibold text-slate-600 mb-1.5">Fecha Documento</label>
+                    <div class="django-input-wrapper w-full">
+                        {{ form.fecha_documento }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-3 flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> Asignación y Ubicación
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 w-full">
+                <div class="min-w-0 w-full">
+                    <label for="{{ form.nro_pecosa.id_for_label }}" class="block text-xs font-semibold text-slate-600 mb-1.5">N° PECOSA</label>
+                    <div class="django-input-wrapper w-full">
+                        {{ form.nro_pecosa }}
+                    </div>
+                </div>
+                <div class="min-w-0 w-full">
+                    <label for="{{ form.fecha_salida_pecosa.id_for_label }}" class="block text-xs font-semibold text-slate-600 mb-1.5">Fecha Salida Almacén</label>
+                    <div class="django-input-wrapper w-full">
+                        {{ form.fecha_salida_pecosa }}
+                    </div>
+                </div>
+                <div class="min-w-0 w-full">
+                    <label for="{{ form.sede.id_for_label }}" class="block text-xs font-semibold text-slate-600 mb-1.5">Sede Custodia</label>
+                    <div class="django-input-wrapper w-full">
+                        {{ form.sede }}
+                    </div>
+                </div>
+                <div class="min-w-0 w-full">
+                    <label for="{{ form.area.id_for_label }}" class="block text-xs font-semibold text-slate-600 mb-1.5">Área / Oficina</label>
+                    <div class="django-input-wrapper w-full">
+                        {{ form.area }}
+                    </div>
+                </div>
+                <div class="min-w-0 w-full">
+                    <label for="{{ form.usuario_responsable.id_for_label }}" class="block text-xs font-semibold text-slate-600 mb-1.5">Jefe Responsable</label>
+                    <div class="django-input-wrapper w-full">
+                        {{ form.usuario_responsable }}
+                    </div>
+                </div>
+                <div class="min-w-0 w-full">
+                    <label for="{{ form.usuario_asignado.id_for_label }}" class="block text-xs font-semibold text-slate-600 mb-1.5">Usuario Asignado</label>
+                    <div class="django-input-wrapper w-full">
+                        {{ form.usuario_asignado }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-3 flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> Especificaciones del Bien
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 w-full">
+                <div class="min-w-0 w-full">
+                    <label for="{{ form.marca.id_for_label }}" class="block text-xs font-semibold text-slate-600 mb-1.5">Marca</label>
+                    <div class="django-input-wrapper w-full">
+                        {{ form.marca }}
+                    </div>
+                </div>
+                <div class="min-w-0 w-full">
+                    <label for="{{ form.modelo.id_for_label }}" class="block text-xs font-semibold text-slate-600 mb-1.5">Modelo</label>
+                    <div class="django-input-wrapper w-full">
+                        {{ form.modelo }}
+                    </div>
+                </div>
+                <div class="min-w-0 w-full">
+                    <label for="{{ form.numero_serie.id_for_label }}" class="block text-xs font-semibold text-slate-600 mb-1.5">N° de Serie</label>
+                    <div class="django-input-wrapper w-full">
+                        {{ form.numero_serie }}
+                    </div>
+                </div>
+                <div class="min-w-0 w-full">
+                    <label for="{{ form.estado_conservacion.id_for_label }}" class="block text-xs font-semibold text-slate-600 mb-1.5">Estado Inicial</label>
+                    <div class="django-input-wrapper w-full">
+                        {{ form.estado_conservacion }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full">
+            <label for="{{ form.observaciones.id_for_label }}" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Observaciones Adicionales</label>
+            <div class="django-input-wrapper-textarea w-full">
+                {{ form.observaciones }}
+            </div>
+        </div>
+
+        <div style="display:none;">{{ form.tipo_documento_alta }}</div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-slate-100 w-full">
+            <a href="{% url 'lista_bienes' %}" class="w-full sm:w-auto inline-flex items-center justify-center py-2.5 px-5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer box-border">
+                Cancelar
+            </a>
+            <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-md shadow-indigo-600/10 hover:shadow-indigo-600/20 transition duration-150 text-sm box-border">
+                Guardar Bien Patrimonial
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .django-input-wrapper,
+    .django-input-wrapper-textarea {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block;
+        box-sizing: border-box !important;
+    }
+
+    .django-input-wrapper input,
+    .django-input-wrapper select {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        border: 1px solid #e2e8f0 !important;
+        background-color: #f8fafc !important;
+        border-radius: 0.75rem !important;
+        padding: 0.625rem 0.875rem !important;
+        font-size: 0.875rem !important;
+        color: #1e293b !important;
+        transition: all 0.2s !important;
+    }
+
+    .django-input-wrapper input:focus,
+    .django-input-wrapper select:focus {
+        outline: none !important;
+        border-color: #6366f1 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12) !important;
+    }
+
+    .django-input-wrapper-textarea textarea {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        border: 1px solid #e2e8f0 !important;
+        background-color: #f8fafc !important;
+        border-radius: 0.75rem !important;
+        padding: 0.75rem !important;
+        font-size: 0.875rem !important;
+        color: #1e293b !important;
+        min-height: 100px !important;
+        transition: all 0.2s !important;
+        resize: vertical;
+    }
+
+    .django-input-wrapper-textarea textarea:focus {
+        outline: none !important;
+        border-color: #6366f1 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12) !important;
+    }
+</style>
+
+<script>
+(function() {
+    const tipoDoc = document.getElementById("{{ form.tipo_doc_adquisicion.id_for_label }}");
+    const tipoMovHidden = document.getElementById("{{ form.tipo_movimiento.id_for_label }}");
+    const tipoMovBadge = document.getElementById("tipo_movimiento_badge");
+    const campoTransfer = document.getElementById("transferenciaField");
+    const inputBusqueda = document.getElementById('catalogo_search');
+    const resultadosDiv = document.getElementById('resultados');
+    const campoOcultoCatalogo = document.getElementById("{{ form.catalogo.id_for_label }}");
+    const campoDenominacion = document.getElementById("{{ form.denominacion.id_for_label }}");
+
+    function actualizarFormulario() {
+        if (!tipoDoc || !tipoMovHidden || !tipoMovBadge) return;
+        const valorDoc = tipoDoc.value;
+
+        if (valorDoc !== "031" && valorDoc !== "045") {
+            tipoMovHidden.value = "";
+            tipoMovBadge.textContent = "—";
+            tipoMovBadge.className = "w-full inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide bg-slate-100 text-slate-400 border border-slate-200 uppercase select-none box-border min-h-[42px]";
+            if (campoTransfer) campoTransfer.style.display = "none";
+            return;
+        }
+
+        if (valorDoc === "031") {
+            tipoMovHidden.value = "COMPRA";
+            tipoMovBadge.textContent = "COMPRA";
+            tipoMovBadge.className = "w-full inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase select-none box-border min-h-[42px]";
+            if (campoTransfer) campoTransfer.style.display = "none";
+        } else if (valorDoc === "045") {
+            tipoMovHidden.value = "NEA";
+            tipoMovBadge.textContent = "NEA";
+            tipoMovBadge.className = "w-full inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase select-none box-border min-h-[42px]";
+            if (campoTransfer) campoTransfer.style.display = "block";
+        }
+    }
+
+    if (tipoDoc) {
+        tipoDoc.addEventListener("change", actualizarFormulario);
+        window.addEventListener("load", actualizarFormulario);
+    }
+
+    // ========== BUSCADOR DEL CATÁLOGO SIGA ==========
+    if (!inputBusqueda || !resultadosDiv) return;
+    let currentIndex = -1;
+    let resultadosItems = [];
+
+    function limpiarResultados() {
+        resultadosDiv.innerHTML = "";
+        resultadosDiv.classList.add("hidden");
+        inputBusqueda.setAttribute("aria-expanded", "false");
+        currentIndex = -1;
+        resultadosItems = [];
+    }
+
+    function seleccionarItem(item) {
+        inputBusqueda.value = item.codigo + " - " + item.nombre;
+        if (campoOcultoCatalogo) campoOcultoCatalogo.value = item.id;
+        if (campoDenominacion) campoDenominacion.value = item.nombre;
+        limpiarResultados();
+    }
+
+    function renderizarResultados(data) {
+        limpiarResultados();
+        if (!data.length) {
+            resultadosDiv.innerHTML = '<div class="p-3 text-xs font-medium text-slate-400 text-center">Sin coincidencias encontradas</div>';
+            resultadosDiv.classList.remove("hidden");
+            inputBusqueda.setAttribute("aria-expanded", "true");
+            return;
+        }
+        data.forEach((item, idx) => {
+            let div = document.createElement("div");
+            div.className = "p-3 hover:bg-indigo-50/70 transition cursor-pointer flex items-center text-xs text-slate-700 font-medium";
+            div.setAttribute("role", "option");
+            div.setAttribute("id", "resultado-" + idx);
+            div.innerHTML = `<strong class="text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded mr-2 font-mono">${item.codigo}</strong> <span class="truncate text-slate-800">${item.nombre}</span>`;
+            div.tabIndex = -1;
+            div.addEventListener("click", () => seleccionarItem(item));
+            resultadosDiv.appendChild(div);
+            resultadosItems.push(div);
+        });
+        resultadosDiv.classList.remove("hidden");
+        inputBusqueda.setAttribute("aria-expanded", "true");
+        currentIndex = -1;
+    }
+
+    function buscarCatalogo(query) {
+        fetch(`/bienes/buscar-catalogo/?q=${encodeURIComponent(query)}`)
+            .then(res => { if (!res.ok) throw new Error("Error en la búsqueda"); return res.json(); })
+            .then(data => renderizarResultados(data))
+            .catch(err => {
+                console.error(err);
+                resultadosDiv.innerHTML = '<div class="p-3 text-xs font-medium text-rose-500 text-center">Error al conectar con el servidor</div>';
+                resultadosDiv.classList.remove("hidden");
+            });
+    }
+
+    inputBusqueda.addEventListener('keyup', function(e) {
+        if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter" || e.key === "Escape") return;
+        const query = this.value.trim();
+        if (query.length < 2) { limpiarResultados(); return; }
+        buscarCatalogo(query);
+    });
+
+    inputBusqueda.addEventListener('keydown', function(e) {
+        if (!resultadosItems.length) return;
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            currentIndex = (currentIndex + 1) % resultadosItems.length;
+            resaltarItem();
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            currentIndex = (currentIndex - 1 + resultadosItems.length) % resultadosItems.length;
+            resaltarItem();
+        } else if (e.key === "Enter") {
+            e.preventDefault();
+            if (currentIndex >= 0 && resultadosItems[currentIndex]) resultadosItems[currentIndex].click();
+        } else if (e.key === "Escape") {
+            limpiarResultados();
+        }
+    });
+
+    function resaltarItem() {
+        resultadosItems.forEach((item, idx) => {
+            if (idx === currentIndex) {
+                item.classList.add("bg-indigo-50", "border-l-4", "border-indigo-600");
+                item.focus();
+            } else {
+                item.classList.remove("bg-indigo-50", "border-l-4", "border-indigo-600");
+            }
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!inputBusqueda.contains(e.target) && !resultadosDiv.contains(e.target)) limpiarResultados();
+    });
+
+    // ==================== MODAL NUEVO ÍTEM CATÁLOGO ====================
+    const btnAgregar = document.getElementById('btn-agregar-catalogo');
+    const modal = document.getElementById('modal-nuevo-item');
+    const btnCancelar = document.getElementById('btn-cancelar-item');
+    const btnGuardar = document.getElementById('btn-guardar-item');
+    const nuevoCodigo = document.getElementById('nuevo-codigo');
+    const nuevoNombre = document.getElementById('nuevo-nombre');
+
+    if (btnAgregar && modal) {
+        btnAgregar.addEventListener('click', () => {
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                nuevoCodigo.focus();
+            }
+        });
+
+        btnCancelar.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            nuevoCodigo.value = '';
+            nuevoNombre.value = '';
+        });
+
+        btnGuardar.addEventListener('click', () => {
+            const codigo = nuevoCodigo.value.trim();
+            const nombre = nuevoNombre.value.trim();
+            if (!codigo || !nombre) {
+                alert('Complete ambos campos.');
+                return;
+            }
+
+            fetch('{% url "crear_item_catalogo" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `codigo=${encodeURIComponent(codigo)}&denominacion=${encodeURIComponent(nombre)}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    inputBusqueda.value = data.item.codigo + ' - ' + data.item.nombre;
+                    campoOcultoCatalogo.value = data.item.id;
+                    campoDenominacion.value = data.item.nombre;
+                    modal.classList.add('hidden');
+                    nuevoCodigo.value = '';
+                    nuevoNombre.value = '';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error de conexión.');
+            });
+        });
+    }
+})();
+
+// ========== AUTOCOMPLETAR JEFE RESPONSABLE SEGÚN ÁREA ==========
+const areaSelect = document.getElementById('{{ form.area.id_for_label }}');
+const responsableSelect = document.getElementById('{{ form.usuario_responsable.id_for_label }}');
+const asignadoSelect = document.getElementById('{{ form.usuario_asignado.id_for_label }}');
+
+if (areaSelect && responsableSelect) {
+    areaSelect.addEventListener('change', function() {
+        const areaId = this.value;
+        if (!areaId) return;
+
+        fetch(`/bienes/api/info-area/${areaId}/`)
+            .then(res => res.json())
+            .then(data => {
+                // Autocompletar Jefe Responsable
+                if (data.jefe_id) {
+                    // Verificar si el jefe está en las opciones del select
+                    let found = false;
+                    for (let option of responsableSelect.options) {
+                        if (option.value === String(data.jefe_id)) {
+                            responsableSelect.value = option.value;
+                            found = true;
+                            break;
+                        }
+                    }
+                    // Si no está, podrías agregarlo dinámicamente (opcional)
+                    if (!found) {
+                        const newOption = new Option(data.jefe_nombre, data.jefe_id, true, true);
+                        responsableSelect.add(newOption);
+                    }
+                } else {
+                    // Si no hay jefe, dejar sin selección
+                    responsableSelect.value = '';
+                }
+
+                // Filtrar usuarios asignados a esa área (opcional)
+                if (asignadoSelect) {
+                    // Limpiar opciones actuales excepto la vacía
+                    while (asignadoSelect.options.length > 1) {
+                        asignadoSelect.remove(1);
+                    }
+                    // Agregar usuarios del área
+                    data.usuarios.forEach(function(user) {
+                        const option = new Option(user.first_name + ' ' + user.last_name, user.id);
+                        asignadoSelect.add(option);
+                    });
+                }
+            })
+            .catch(err => console.error('Error al obtener información del área', err));
+    });
+}
+</script>
+
+{% endblock %}
+
