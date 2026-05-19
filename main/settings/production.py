@@ -7,11 +7,11 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS').split(',')
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
+#cambiar seguro en produccion con ssl
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
 
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = False
 
 # Para plataformas cloud
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
