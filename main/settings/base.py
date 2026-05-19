@@ -31,7 +31,7 @@ INSTALLED_APPS = [
     'apps.etiquetado',
     'apps.reportes',
 
-    'django_filters',
+    #'django_filters',
 ]
 
 # =========================
