@@ -23,4 +23,5 @@ urlpatterns = [
     path('catalogo/crear/', views.crear_item_catalogo, name='crear_item_catalogo'),
     path('api/info-area/<int:area_id>/', views.obtener_info_area, name='obtener_info_area'),
     path('api/datos-origen/<int:bien_id>/', views.datos_origen_bien, name='datos_origen_bien'),
+    #path('imprimir-qrs-pdf/', views.imprimir_qrs_pdf, name='imprimir_qrs_pdf'),
 ]
