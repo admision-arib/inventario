@@ -128,3 +128,37 @@ def obtener_area_usuario(request, usuario_id):
             'area_nombre': str(usuario.area)
         })
     return JsonResponse({'area_id': None, 'area_nombre': ''})
+
+
+from django.contrib.auth.views import LoginView
+class CustomLoginView(LoginView):
+    def form_valid(self, form):
+        super().form_valid(form)
+        user = self.request.user
+        if user.debe_cambiar_password:
+            return redirect('cambiar_password_obligatorio')
+        return redirect('lista_bienes')
+
+
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import SetPasswordForm
+
+@login_required
+def cambiar_password_obligatorio(request):
+    # Si ya cambió la contraseña, redirige al inicio
+    if not request.user.debe_cambiar_password:
+        return redirect('lista_bienes')
+
+    if request.method == 'POST':
+        form = SetPasswordForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            user.debe_cambiar_password = False
+            user.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Contraseña actualizada correctamente. Bienvenido a SIPAT.')
+            return redirect('lista_bienes')
+    else:
+        form = SetPasswordForm(request.user)
+
+    return render(request, 'usuarios/cambiar_password.html', {'form': form})

@@ -18,6 +18,7 @@ class RegistroUsuarioForm(UserCreationForm):
         required=False,
         label='Área de trabajo'
     )
+
     class Meta:
         model = Usuario
         fields = [
@@ -54,7 +55,6 @@ class RegistroUsuarioForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Estilo para los campos de contraseña
         clase_password = 'w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder:text-slate-400'
 
         if 'password1' in self.fields:
@@ -66,7 +66,7 @@ class RegistroUsuarioForm(UserCreationForm):
                 'class': 'w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all'
             })
 
-    # Validaciones existentes (se mantienen igual)
+    # --- Validaciones (sin cambios) ---
     def clean_dni(self):
         dni = self.cleaned_data.get('dni', '').strip()
         if not dni.isdigit() or len(dni) != 8:
@@ -96,17 +96,17 @@ class RegistroUsuarioForm(UserCreationForm):
 
     def save(self, commit=True):
         usuario = super().save(commit=False)
+        usuario.debe_cambiar_password = True       # <-- siempre fuerza el cambio
         if usuario.email:
             usuario.username = usuario.email.lower().strip()
         if commit:
             usuario.save()
-            # Guardar los roles seleccionados
-            self.save_m2m()
+            self.save_m2m()                         # guarda los roles ManyToMany
         return usuario
 
 
 class EditarUsuarioForm(UserChangeForm):
-    password = None  # Oculta contraseña
+    password = None  # Oculta el campo de contraseña en la edición
 
     roles = forms.ModelMultipleChoiceField(
         queryset=Rol.objects.all(),
@@ -119,12 +119,19 @@ class EditarUsuarioForm(UserChangeForm):
         required=False,
         label='Área de trabajo'
     )
+    debe_cambiar_password = forms.BooleanField(
+        required=False,
+        initial=False,
+        label='Forzar cambio de contraseña en el próximo inicio de sesión'
+    )
+
     class Meta:
         model = Usuario
         fields = [
             'dni', 'email',
             'first_name', 'last_name',
-            'roles', 'telefono', 'area','is_active'
+            'roles', 'telefono', 'area',
+            'is_active', 'debe_cambiar_password'   # agregado
         ]
 
         widgets = {
@@ -134,8 +141,18 @@ class EditarUsuarioForm(UserChangeForm):
             'last_name': forms.TextInput(attrs={'class': 'w-full border rounded-lg px-3 py-2'}),
             'telefono': forms.TextInput(attrs={'class': 'w-full border rounded-lg px-3 py-2'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'rounded text-blue-600'}),
+            # 'debe_cambiar_password' no requiere clase especial; usa el estilo por defecto
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Estilos adicionales para el campo area (opcional)
+        if 'area' in self.fields:
+            self.fields['area'].widget.attrs.update({
+                'class': 'w-full border rounded-lg px-3 py-2'
+            })
+
+    # --- Validaciones (sin cambios) ---
     def clean_dni(self):
         dni = self.cleaned_data.get('dni')
         if Usuario.objects.filter(dni=dni).exclude(pk=self.instance.pk).exists():
@@ -154,6 +171,7 @@ class EditarUsuarioForm(UserChangeForm):
             usuario.save()
             self.save_m2m()
         return usuario
+
 
 
 # El LoginForm no necesita cambios porque solo usa 'username' (DNI) y 'password'

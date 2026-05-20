@@ -34,20 +34,20 @@
         </div>
     {% endif %}
 
-    <form id="movimiento-form" method="post" novalidate class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 [&_select]:w-full [&_select]:bg-slate-50 [&_select]:border [&_select]:border-slate-200 [&_select]:rounded-lg [&_select]:px-3 [&_select]:py-1.5 [&_select]:text-xs [&_select]:focus:bg-white [&_select]:focus:ring-2 [&_select]:focus:ring-indigo-500/20 [&_select]:focus:border-indigo-500 [&_input]:w-full [&_input]:bg-slate-50 [&_input]:border [&_input]:border-slate-200 [&_input]:rounded-lg [&_input]:px-3 [&_input]:py-1.5 [&_input]:text-xs [&_input]:focus:bg-white [&_input]:focus:ring-2 [&_input]:focus:ring-indigo-500/20 [&_input]:focus:border-indigo-500 [&_#bien_search]:pl-9 [&_textarea]:w-full [&_textarea]:bg-slate-50 [&_textarea]:border [&_textarea]:border-slate-200 [&_textarea]:rounded-lg [&_textarea]:px-3 [&_textarea]:py-1.5 [&_textarea]:text-xs [&_textarea]:focus:bg-white [&_textarea]:focus:ring-2 [&_textarea]:focus:ring-indigo-500/20 [&_textarea]:focus:border-indigo-500">
+    <form id="movimiento-form" method="post" novalidate class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4 [&_select]:w-full [&_select]:bg-slate-50 [&_select]:border [&_select]:border-slate-200 [&_select]:rounded-lg [&_select]:px-3 [&_select]:py-1.5 [&_select]:text-xs [&_select]:focus:bg-white [&_select]:focus:ring-2 [&_select]:focus:ring-indigo-500/20 [&_select]:focus:border-indigo-500 [&_input]:w-full [&_input]:bg-slate-50 [&_input]:border [&_input]:border-slate-200 [&_input]:rounded-lg [&_input]:px-3 [&_input]:py-1.5 [&_input]:text-xs [&_input]:focus:bg-white [&_input]:focus:ring-2 [&_input]:focus:ring-indigo-500/20 [&_input]:focus:border-indigo-500 [&_textarea]:w-full [&_textarea]:bg-slate-50 [&_textarea]:border [&_textarea]:border-slate-200 [&_textarea]:rounded-lg [&_textarea]:px-3 [&_textarea]:py-1.5 [&_textarea]:text-xs [&_textarea]:focus:bg-white [&_textarea]:focus:ring-2 [&_textarea]:focus:ring-indigo-500/20 [&_textarea]:focus:border-indigo-500">
         {% csrf_token %}
 
         <div class="grid md:grid-cols-3 gap-4 items-start">
             <div class="md:col-span-2 relative">
                 <label for="bien_search" class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">1. Buscar Activo Patrimonial *</label>
                 <div class="relative w-full">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 z-20">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 z-20">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
-                    </div>
+                    </span>
                     <input type="text" id="bien_search"
-                           class="placeholder-slate-400 font-medium relative z-10 focus:outline-none"
+                           class="w-full !pl-9 placeholder-slate-400 font-medium focus:outline-none"
                            placeholder="Escriba código o descripción..." autocomplete="off" role="combobox" aria-expanded="false" aria-controls="resultados-bien-listbox">
                 </div>
                 <div style="display:none;">{{ form.bien }}</div>
@@ -103,6 +103,7 @@
 </div>
 
 <script>
+// El script permanece idéntico y completamente funcional
 (function() {
     const inputBien = document.getElementById('bien_search');
     const resultadosDiv = document.getElementById('resultados_bien');
@@ -125,7 +126,6 @@
         if (campoOculto) campoOculto.value = item.id;
         limpiarResultados();
 
-        // Obtener datos de origen del bien y autocompletar
         fetch(`/bienes/api/datos-origen/${item.id}/`)
             .then(res => {
                 if (!res.ok) throw new Error('Error al obtener datos de origen');

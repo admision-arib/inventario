@@ -17,9 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
-from apps.usuarios.forms import LoginForm
 from django.shortcuts import redirect
-
+from apps.usuarios.views import CustomLoginView
 
 
 def redirigir_login(request):
@@ -32,7 +31,6 @@ urlpatterns = [
     path('bienes/', include('apps.bienes.urls')),
     path('inventario/', include('apps.inventario.urls')),
     path('usuarios/', include('apps.usuarios.urls')),
-    path('login/', auth_views.LoginView.as_view(template_name='login.html',
-                                                authentication_form=LoginForm,redirect_authenticated_user=True,), name='login'),
+    path('login/', CustomLoginView.as_view(template_name='login.html',redirect_authenticated_user=True), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]

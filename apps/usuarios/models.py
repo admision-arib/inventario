@@ -111,6 +111,10 @@ class Usuario(AbstractUser):
         related_name='usuarios',
         verbose_name='Área / Oficina'
     )
+    debe_cambiar_password = models.BooleanField(
+        default=False,
+        verbose_name='Debe cambiar contraseña en el próximo inicio de sesión'
+    )
 
     fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')
     fecha_modificacion = models.DateTimeField(auto_now=True, verbose_name='Última modificación')
