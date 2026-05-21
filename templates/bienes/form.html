@@ -260,8 +260,8 @@
         border: 1px solid #e2e8f0 !important;
         background-color: #f8fafc !important;
         border-radius: 0.65rem !important;
-        padding: 0.375rem 0.625rem !important; /* py-1.5 optimizado */
-        font-size: 0.815rem !important; /* Ligeramente más compacto */
+        padding: 0.375rem 0.625rem !important;
+        font-size: 0.815rem !important;
         color: #1e293b !important;
         transition: all 0.2s !important;
     }
@@ -284,7 +284,7 @@
         padding: 0.375rem 0.625rem !important;
         font-size: 0.815rem !important;
         color: #1e293b !important;
-        min-height: 45px !important; /* Altura justa inicial para evitar scroll vertical */
+        min-height: 45px !important;
         transition: all 0.2s !important;
         resize: vertical;
     }
@@ -298,7 +298,7 @@
 </style>
 
 <script>
-// La lógica JavaScript sigue 100% idéntica y funcional, sin ninguna alteración.
+// La lógica JavaScript sigue 100% idéntica y funcional, con la corrección del enlace externo.
 (function() {
     const tipoDoc = document.getElementById("{{ form.tipo_doc_adquisicion.id_for_label }}");
     const tipoMovHidden = document.getElementById("{{ form.tipo_movimiento.id_for_label }}");
@@ -445,18 +445,17 @@
         if (!inputBusqueda.contains(e.target) && !resultadosDiv.contains(e.target)) limpiarResultados();
     });
 
+    // *** CORRECCIÓN DEL ENLACE EXTERNO ***
     resultadosDiv.addEventListener('click', function(e) {
         const link = e.target.closest('a[href*="herramientasdeconsulta"]');
         if (link && inputBusqueda.value.trim()) {
-            e.preventDefault();
-            navigator.clipboard.writeText(inputBusqueda.value.trim()).then(() => {
-                const originalText = link.textContent;
-                link.textContent = '¡Texto copiado! Pégalo en el buscador.';
-                setTimeout(() => { link.textContent = originalText; }, 2000);
-                window.open(link.href, '_blank');
-            }).catch(() => {
-                window.open(link.href, '_blank');
-            });
+            // No prevenimos la acción por defecto del enlace. El navegador abrirá la URL normalmente.
+            // Solo intentamos copiar el texto al portapapeles como ayuda extra.
+            navigator.clipboard.writeText(inputBusqueda.value.trim()).catch(() => {});
+            // Feedback visual opcional sin interrumpir la navegación
+            const originalText = link.textContent;
+            link.textContent = '✓ Abriendo...';
+            setTimeout(() => { link.textContent = originalText; }, 1500);
         }
     });
 
