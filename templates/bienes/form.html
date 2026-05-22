@@ -446,18 +446,21 @@
     });
 
     // *** CORRECCIÓN DEL ENLACE EXTERNO ***
-    resultadosDiv.addEventListener('click', function(e) {
-        const link = e.target.closest('a[href*="herramientasdeconsulta"]');
-        if (link && inputBusqueda.value.trim()) {
-            // No prevenimos la acción por defecto del enlace. El navegador abrirá la URL normalmente.
-            // Solo intentamos copiar el texto al portapapeles como ayuda extra.
-            navigator.clipboard.writeText(inputBusqueda.value.trim()).catch(() => {});
-            // Feedback visual opcional sin interrumpir la navegación
+resultadosDiv.addEventListener('click', function(e) {
+    const link = e.target.closest('a[href*="herramientasdeconsulta"]');
+    if (link) {
+        // Recuperamos la query guardada en el atributo data
+        const originalQuery = decodeURIComponent(link.getAttribute('data-search-query') || '');
+        if (originalQuery) {
+            navigator.clipboard.writeText(originalQuery).catch(() => {});
+            // Feedback visual
             const originalText = link.textContent;
-            link.textContent = '✓ Abriendo...';
+            link.textContent = '✓ Copiado';
             setTimeout(() => { link.textContent = originalText; }, 1500);
         }
-    });
+        // El enlace se abre normalmente (no se previene el comportamiento por defecto)
+    }
+});
 
     const btnAgregar = document.getElementById('btn-agregar-catalogo');
     const modal = document.getElementById('modal-nuevo-item');
